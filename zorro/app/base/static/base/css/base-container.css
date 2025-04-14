@@ -1,0 +1,8 @@
+.base-container{
+    width: inherit;
+    height: inherit;
+}
+
+.base-scripts{
+    display: none;
+}

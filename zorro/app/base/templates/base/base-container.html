@@ -1,0 +1,10 @@
+<link rel="stylesheet" type="text/css" href="/static/base/css/base-container.css">
+<div class="base-container">
+    <div class="base-scripts">
+        {% block scripts %}{% endblock %}
+    </div>
+    {% block shadow_start %}{% endblock %}
+    {% block styles %}{% endblock %}
+    {% block content %}{% endblock %}
+    {% block shadow_end %}{% endblock %}
+</div>
