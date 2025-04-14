@@ -1,0 +1,52 @@
+.top-frame{
+    padding-inline-start: 8px;
+}
+
+.container{
+    height: 30px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.logo{
+    display: flex;
+}
+
+.content{
+    margin-left: 10px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.buttons{
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.buttons button{
+    width: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: rgba(255, 255, 255, 0.0);
+    padding: 0;
+    border: 0;
+}
+
+.buttons button:hover{
+    background: #C0C0C0;
+}
+
+.buttons button.close-btn:hover{
+    background: #E81123;
+}
+
+.buttons button img{
+    height: 10px;
+}

@@ -1,0 +1,64 @@
+/*============================== Defaults ==============================*/
+html{
+    overflow:  hidden;
+}
+
+body{
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #000000;
+    background: #ffffff;
+    -webkit-font-smoothing: antialiased;
+}
+
+header{
+    box-shadow: 0px -1px 15px 0px #0000001f;
+    background-color: #dddddd;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6{
+    margin: 0;
+}
+
+a{
+    cursor: default;
+    -webkit-user-drag: none !important;
+}
+
+p{
+    margin: 0;
+}
+
+button{
+    border: 0;
+}
+
+button:focus{
+    outline: none !important;
+}
+
+button:focus-visible{
+    outline: none !important;
+}
+
+img{
+    -webkit-user-drag: none !important;
+    user-select: none;
+}
+
+.draggable{
+    -webkit-app-region: drag;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.dummy{
+    display: none;
+}
