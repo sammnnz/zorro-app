@@ -1,0 +1,80 @@
+.main-frame{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100vh - 24px);
+}
+
+.container{
+    padding: 24px 0 24px 48px;
+    height: 100%;
+}
+
+.logo-container{
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    /* z-index: 1; */
+}
+
+.logo-container img{
+    width: 240px;
+    min-width: 240px;
+    min-height: 240px;
+    opacity: 10%;
+}
+
+.title{
+    margin-bottom: 72px;
+}
+
+.content{
+    width: fit-content;
+    height: calc(100% - 82px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    /*padding-bottom: 82px;*/
+}
+
+.content a{
+    margin-bottom: 48px;
+    font-size: 14px;
+    color: #7B7B7B;
+}
+
+.recent-projects{
+    margin: 0 0 24px 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.recent-projects a{
+    margin-bottom: 12px;
+}
+
+.recent-projects-container{
+    display: flex;
+    flex-direction: column;
+    border-radius: 5px;
+    background: #DDDDDD;
+    min-width: 120px;
+    /* width: 120px; */
+    padding: 12px 24px;
+    height: 100%;
+}
+
+.recent-projects-container a{
+    margin-bottom: 12px;
+    color: #000000;
+}
+
+.recent-projects-container a:last-child{
+    margin-bottom: 0;
+}

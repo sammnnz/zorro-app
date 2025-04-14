@@ -1,0 +1,19 @@
+{% extends 'templates/base/shadow-container.html' %}
+{% block scripts %}
+{% endblock %}
+{% block styles %}
+  <link rel="stylesheet" type="text/css" href="/static/welcome/css/workspace.css">
+{% endblock %}
+{% block content %}
+<div class="workspace">
+  <div id="left-frame">
+    {% include 'templates/welcome/left-frame.html' %}
+  </div>
+  <div id="left-menu">
+    {% include 'templates/welcome/left-menu.html' %}
+  </div>
+  <div id="main-frame">
+    {% include 'templates/welcome/main-frame.html' %}
+  </div>
+</div>
+{% endblock %}

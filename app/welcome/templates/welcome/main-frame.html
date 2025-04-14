@@ -1,0 +1,27 @@
+{% extends 'templates/base/shadow-container.html' %}
+{% block scripts %}
+{% endblock %}
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="/static/welcome/css/main-frame.css">
+{% endblock %}
+{% block content %}
+    <div class="logo-container">
+        <img src="/static/main/img/logo-zorro.svg">
+    </div>
+    <div class="main-frame">
+        <div class="container">
+            <h1 class="title">Welcome to Zorro!</h1>
+            <div class="content">
+                <a>Open Project</a>
+                <a>Create New Project</a>
+                <div class="recent-projects">
+                    <a>Recent Projects</a>
+                    <div class="recent-projects-container">
+                        <a>project1</a>
+                        <a>project2</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

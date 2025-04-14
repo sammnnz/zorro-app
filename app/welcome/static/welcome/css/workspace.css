@@ -1,0 +1,9 @@
+.workspace{
+    display: flex;
+    flex-direction: row;
+}
+
+#main-frame{
+    width: 100%;
+    background: #ffffff;
+}
