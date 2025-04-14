@@ -1,0 +1,16 @@
+{
+  "name": "Zorro",
+  "version": "1.0.0",
+  "description": "Demo Electron app in mvvm pattern with backend on Python.",
+  "main": "main.js",
+  "devDependencies": {
+    "electron": "32.1.2",
+    "jquery": "3.7.0"
+  },
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Sam Nazarov",
+  "license": "MIT",
+  "type": "commonjs"
+}

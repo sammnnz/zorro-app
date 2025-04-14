@@ -1,0 +1,6 @@
+bottle
+eel
+jinja2
+multipledispatch
+psutil
+pymagic9
