@@ -5,13 +5,19 @@ __all__ = ['WelcomeViewModel']
 
 
 class WelcomeViewModel(BaseVM):
-    exposes = ('click',)
+    exposes = ('new_project', 'location')
 
     def __init__(self):
         self.welcome_model = WelcomeModel()
-        self.click = BaseCommand(execute=self.welcome_model.click)
+        self.new_project = BaseCommand(execute=self.welcome_model.new_project)
+        self.location = ''
+
+    location = property(
+        fget=...,
+        fset=...
+    )
 
     # Command properties
-    click = property(
-        fget=...
+    new_project = property(
+        fget=...,
     )

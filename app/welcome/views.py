@@ -1,6 +1,9 @@
 from zorro.render import get_template, Response
 
-__all__ = ['top_frame_content', 'welcome', 'workspace']
+__all__ = ['new_project',
+           'top_frame_content',
+           'welcome',
+           'workspace']
 
 
 # ROUTES
@@ -18,3 +21,8 @@ def top_frame_content():
 @Response(selector="#workspace")
 def workspace():
     return get_template('welcome/workspace.html')
+
+
+@Response(selector="#main-frame")
+def new_project():
+    return get_template('welcome/new-project.html')
