@@ -5,13 +5,51 @@
 const $ = require('jquery');
 
 const _addShadowTemplate = (value) => {
-    if (value instanceof ShadowRoot) {
-        _shadowTemplates.add(value);
+    if (! (value instanceof ShadowRoot)) return;
+
+    _shadowTemplates.add(value);
+    _init(value);
+}
+
+const _clearShadowTemplates = () => {
+    for (let t of _shadowTemplates) {
+        if (! t.isConnected) _shadowTemplates.delete(t);
     }
 }
 
 const _getShadowTemplates = () => {
-    return _shadowTemplates;
+    console.log(_shadowTemplates);
+}
+
+const _init = (context = document) => {
+    $($(context).find('a')).each((_, el) => {
+        if (! el.hasAttribute('data-reload-page')) return;
+
+        try {
+            if (el.getAttribute('data-reload-page') === 'true') return;
+            if (el.pathname === '/' || el.pathname === '') return;
+
+            const callback = (ev) => {
+                ev.preventDefault();
+                const
+                    {pathname: path} = new URL(ev.target.href),
+                    listener = async () => {
+                        if (el.isConnected) return;
+
+                        el.removeEventListener('click', callback);
+                        console.log('Log: Success remove listener for', el, '.');
+                        window.removeEventListener('routesuccess', listener);
+                    };
+
+                window.addEventListener('routesuccess', listener);
+                goTo(path);
+            }
+
+            el.addEventListener('click', callback);
+        } finally {
+            el.removeAttribute('data-reload-page');
+        }
+    })
 }
 
 const _loadBaseScripts = async (host) => {
@@ -57,6 +95,7 @@ const _loadScript = async (script, callback) => {
             _script.setAttribute(attr.name, attr.value)
         }
 
+        script.src ? _script.src = _script.src + "?" + Date.now() : undefined
         script.textContent ? _script.textContent = script.textContent : undefined
         _script.addEventListener("load",(e) => {
             if (callback) callback(e);
@@ -82,7 +121,6 @@ const _onErrorCallback = (node) => {
     if (! (node instanceof HTMLImageElement || node.src === "")) return;
 
     _addShadowTemplate(node.parentNode)
-    console.log("Shadow-root add to '_shadowTemplates':", node.parentNode)
     node.remove();
 }
 
@@ -97,9 +135,11 @@ const _routeCallback = async (selector, template, context = undefined) => {
     if (host) {
         // https://dev.to/js_bits_bill/simplify-shadow-dom-with-sethtmlunsafe-1fne
         host.setHTMLUnsafe(template);
-        await _loadBaseScripts(host);
         shadowRoot = host.querySelector('.base-container')?.shadowRoot;
+        _clearShadowTemplates();
         _addShadowTemplate(shadowRoot);
+        await _loadBaseScripts(host);
+        if (! shadowRoot) _init(document);
 
         return 0;
     }
@@ -112,16 +152,25 @@ const _routeCallback = async (selector, template, context = undefined) => {
     return -1;
 }
 
+const _RouteSuccessEvent = new Event('routesuccess',{bubbles: true, composed: true});
+
 const _shadowTemplates = new Set();
 
+/**
+ * @public
+ * @function
+ * @name getElementInTemplates
+ * @param {string} selector
+ * @return {HTMLElement | undefined}
+ */
 const getElementInTemplates = (selector) => {
-    let obj = document.querySelector(selector);
+    let el = document.querySelector(selector);
 
-    if (obj) return obj;
+    if (el) return el;
 
     for (let t of _shadowTemplates) {
-        obj = t.querySelector(selector);
-        if (obj) return obj;
+        el = t.querySelector(selector);
+        if (el) return el;
     }
 
     console.warn(`Warning: Element not found: 
@@ -129,61 +178,48 @@ const getElementInTemplates = (selector) => {
     return undefined;
 }
 
-const goTo = (path, callback = _routeCallback) => {
-    window.history.pushState({path}, path, path); // TODO: change
-    route(path, callback);
+const goTo = (path) => {
+    window.history.pushState({path}, path, path);
+    route(path);
 }
 
-const init = (popstate = false) => { // TODO: change
-    popstate ? window.addEventListener('popstate', (e) => {
-        const url = new URL(window.location.href).pathname;
-
-        console.log(`Popstate callback with url: ${url}`);
-        route(url);
-    }) : undefined
-
-    $("[href!='/']").each((_, el) => {
-        el.tagName === 'A' ? el.addEventListener('click', (ev) => {
-            const callback = () => {
-                ev.preventDefault()
-                const {pathname: path} = new URL(ev.target.href);
-
-                goTo(path)
-            }
-            el.getAttribute('data-is-reload-page') !== 'true' ? callback() : undefined
-        }) : undefined
-    })
-
+const init = () => {
+    _init(document);
+    for (let t of _shadowTemplates) {
+        _init(t);
+    }
 }
 
-const route = (path, callback = _routeCallback) => {
+const route = (path) => {
     $.ajax({
         url: path,
         method: 'POST',
         data: {_ajax: 'GET'},
         success: async function (data) {
-            if (await callback(data?.selector, data?.body) === -1) {
+            if (await _routeCallback(data?.selector, data?.body) === -1) {
                 console.warn(`Warning: (Ajax) 
                 Selector '${data?.selector}' or template '${data?.body}' not found.`)
             }
+
+            window.dispatchEvent(_RouteSuccessEvent);
         },
         error: function (jqXHR, exception){
             console.error(`Error: (Ajax) 
             url: ${this.url}, 
             method: ${this.method}, 
             data: ${this.data}`)
-            $(location).attr('href',window.location.href) // TODO: change
+            $(location).attr('href',window.location.href)
         }
     });
 }
 
 const router = {
-    _getShadowTemplates: _getShadowTemplates, // Internal use
+    _getShadowTemplates: _getShadowTemplates, // Debug
     _onErrorCallback: _onErrorCallback, // Internal use
     getElementInTemplates: getElementInTemplates,
     goTo: goTo,
     init: init,
-    route: route,
+    route: route
 }
 
 module.exports.router = router
