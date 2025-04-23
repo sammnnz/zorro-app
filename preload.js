@@ -2,10 +2,10 @@
 // It has the same sandbox as a Chrome extension.
 
 process.once('loaded', () => {
-    const { contextBridge, ipcRenderer } = require('electron');
-
     // Load Zorro-Core API (router, states, ...)
     require('./zorro/core/js/preload');
+
+    const { contextBridge, ipcRenderer } = require('electron');
 
     // Custom Apps API
     const invoke = async function (channel, ...args) {
