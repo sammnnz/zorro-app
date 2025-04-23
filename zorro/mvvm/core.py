@@ -13,6 +13,7 @@ __all__ = ['BaseCommand',
            'BaseNPC',
            'BaseM',
            'BaseVM',
+           'CancelCommand',
            'DataContext',
            'exposer']
 
@@ -73,7 +74,21 @@ class BaseCommand(ICommand):
 
     def execute(self, *args, **kwargs):
         # kwargs.update(self.ex_kwargs)
-        self.ex(*args, **self.ce_kwargs)
+        try:
+            self.ex(*args, **self.ce_kwargs)
+        except CancelCommand as e:
+            return {'result': False, 'msg': e.msg}
+
+        return {'result': True, 'msg': ''}
+
+
+class CancelCommand(Exception):
+    def __init__(self, msg=None):
+        # super(CancelCommand, self).__init__(msg)
+        if not isinstance(msg, str):
+            msg = ''
+
+        self.msg = msg
 
 
 class BaseNPC(INotifyPropertyChanged):
