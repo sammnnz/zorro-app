@@ -2,18 +2,15 @@
  * Bindings API
  */
 
-// import {CheckAttributeName, TAG_ATTRIBUTES} from "./binder.js";
-
-
 // Type definitions
 /**
  * Binding's data type.
- * @typedef {Object.<string, Object.<string, Object.<string, Object>>>} BindingData
+ * @typedef {Object.<string, Object.<string, Object.<string, Object>>>} Bindings
  */
 
 /**
- * Binding type (get from Python).
- * @typedef {Object.<string, string>} Binding
+ * Binding's data from Python.
+ * @typedef {Object.<string, string>} BindingData
  * @property {string} attr - name of attribute/attributeIDL (this property check in JS)
  * @property {string | undefined} attrIDL - name of attributeIDL (this property create in JS)
  * @property {string} id - id of HTMLElement
@@ -21,91 +18,123 @@
  * @property {string} type - type of binding (OneWay, TwoWay, OneWayToSource, OneTime)
  */
 
-
-// Public functions
+// Exports
 /**
- * Get from Python detected bindings and return JS binding's data.
+ * Binding's data for use in NotifyPropertyChanged.
+ * @type {Bindings}
+ */
+export const bindings = {};
+
+/**
+ * Get from Python detected bindings and update `bindings` object.
  * @public
  * @function
- * @name BindingsOn
- * @returns {BindingData}
+ * @name UpdateBindings
+ * @returns {Promise.<void>}
  */
-export const BindingsOn = async () => {
+export const UpdateBindings = async () => {
     "use strict";
 
     const
         /**
          * Call from Python function, witch get bindings data (element's id, attr/attrIDL of binding,
          * target Python property and type of binding).
-         * @type {[Binding]}
+         * @type {[BindingData]}
          */
-        bindings = await eel?._get_bindings()(),
-
-         /**
-         * Set binding types (OneTime, OneWay, OneWayToSource, TwoWay).
-         * @type {Object.<string. string>}
-         */
-        bindingTypes = {
-            'OT': 'OneTime',
-             'OW': 'OneWay',
-             'OWTS': 'OneWayToSource',
-             'TW': 'TwoWay'
-         },
+        bindingData = eel?._get_bindings instanceof Function ?
+            await eel._get_bindings()() : [],
 
         /**
-         * Return binding's data.
-         * @type {BindingData}
-         */
-        data = {},
-
-        /**
-         * Object with OneWayToSource bindings (only for OneWayToSource and TwoWay).
+         * Object with OneWayToSource bindings (only for OneWayToSource and
+         * TwoWay).
          * @type {Set}
          */
         temp = new Set();
 
-    for (let binding of bindings) {
+    for (let binding of bindingData) {
+        if (typeof binding !== 'object') continue;
+
+        if (! (typeof binding.attr === 'string' &&
+            typeof binding.id === 'string' &&
+            typeof binding.prop === 'string' &&
+            typeof binding.type === 'string')) {
+            console.warn(`Warning: Binding have incorrect data: 
+            attr: ${binding.attr}, 
+            id: ${binding.id}, 
+            prop: ${binding.prop}, 
+            type: ${binding.type}.`)
+        }
+
         const
             /**
              * @type {HTMLElement}
              */
-            obj = binding?.id ? router.getElementInTemplates('#' + binding.id) : undefined;
+            el = router.getElementInTemplates('#' + binding.id);
 
-        if (! obj) {
-            continue
-        }
+        binding.prop = binding.prop.replace(".", "_");
+        if (! el) {
+            if (bindings[binding.prop] && binding.id in bindings[binding.prop]) {
+                const id = bindings[binding.prop][binding.id];
+                for (let attr in id) {
+                    const
+                        element = id[attr]?.element,
+                        events = id[attr]?.events,
+                        funcs = id[attr]?.funcs;
 
-        binding['attr'] = CheckAttributeName(obj, binding?.attr)[0]
-        binding['attrIDL'] = CheckAttributeIDLName(obj, binding?.attr)
-        binding['prop'] = binding?.prop?.replace?.(".", "_")
+                    document.removeEventListener(events?.notify, funcs?.notify);
+                    element.removeEventListener(events?.command, funcs?.command, {once: true, capture: true});
+                }
 
-        data[binding.prop] = data[binding.prop] ?
-            data[binding.prop] : {}
-        data[binding.prop][binding.id] = data[binding.prop][data] ?
-            data[binding.prop][binding.id] : {}
-        data[binding.prop][binding.id][binding.attr] = data[binding.prop][binding.id][binding.attr] ?
-            data[binding.prop][binding.id][binding.attr] : {
-                info: binding,
+                delete bindings[binding.prop][binding.id];
+                if (! Object.keys(bindings[binding.prop]).length)
+                    delete bindings[binding.prop];
+
+                console.log(`Log: Delete id '${binding.id}' from binding's 
+property ${binding.prop} and clear listeners.`);
             }
 
-        switch (binding?.type) {
-            case bindingTypes['OT']: // OneTime
-                await OneTime(binding, obj)
+            continue;
+        }
+
+        binding['attr'] = CheckAttributeName(el, binding.attr)[0]
+        binding['attrIDL'] = _CheckAttributeIDLName(el, binding.attr)
+        bindings[binding.prop] = bindings[binding.prop] ?
+            bindings[binding.prop] : {}
+        bindings[binding.prop][binding.id] =
+            bindings[binding.prop][binding.id] ?
+            bindings[binding.prop][binding.id] : {}
+
+        if (binding.attr in bindings[binding.prop][binding.id]) {
+            console.log(`Log: Binding for property '${binding.prop}' and id 
+'${binding.id}' has already attr '${binding.attr}'.`);
+            continue;
+        }
+
+        bindings[binding.prop][binding.id][binding.attr] =
+            bindings[binding.prop][binding.id][binding.attr] ?
+            bindings[binding.prop][binding.id][binding.attr] : {
+                info: binding,
+                element: el
+            }
+
+        switch (binding.type) {
+            case _bindingTypes['OT']: // OneTime
+                await _OneTime(binding, el)
                 break
 
-            case bindingTypes['OW']: // OneWay
-                OneWay(binding, data, obj);
+            case _bindingTypes['OW']: // OneWay
+                _OneWay(binding, bindings, el);
                 break
 
-            case bindingTypes['OWTS']: // OneWayToSource
+            case _bindingTypes['OWTS']: // OneWayToSource
                 temp.add(binding)
                 break
 
-            case bindingTypes['TW']: // TwoWay
-                //for OneWay part
-                OneWay(binding, data, obj)
+            case _bindingTypes['TW']: // TwoWay
+                // OneWay part
+                _OneWay(binding, bindings, el)
 
-                // for OneWayToSource part
+                // OneWayToSource part
                 temp.add(binding)
                 break
 
@@ -116,81 +145,49 @@ export const BindingsOn = async () => {
 
     // Create binds with ElementBinder for OneWayToSource and TwoWay bindings
     for (let binding of temp) {
-        OneWayToSource(binding, bindingTypes, data)
+        _OneWayToSource(binding, bindings)
     }
-
-    return data
 }
 
+// Privates
 /**
- * TODO дописать документацию
- *
- * @private
- * @function
- * @name BindingOff
- * @param {Binding} binding - ...
- * @returns {void}
- *
+ * Binding types (OneTime, OneWay, OneWayToSource, TwoWay).
+ * @type {Object.<string. string>}
  */
-export const BindingOff = (binding) => {
-    "use strict";
-
-    // TODO сделать имплеиментацию
-}
+const _bindingTypes = {
+    'OT':   'OneTime',
+    'OW':   'OneWay',
+    'OWTS': 'OneWayToSource',
+    'TW':   'TwoWay'
+ };
 
 /**
- * TODO дописать документацию
- *
+ * TODO: docs, impl
  * @private
  * @function
- * @name BindingsOff
- * @param {BindingData} bindingData - ...
- * @returns {void}
- *
- */
-export const BindingsOff = (bindingData) => {
-    "use strict";
-
-    // TODO сделать имплеиментацию
-}
-
-
-// Private functions
-/**
- * TODO дописать документацию
- *
- * @private
- * @function
- * @name CheckAttributeIDLName
- * @param {HTMLElement | null} obj - ...
- * @param {string} name - ...
+ * @name _CheckAttributeIDLName
+ * @param {HTMLElement | null} obj
+ * @param {string} name
  * @returns {string | undefined}
- *
  */
-const CheckAttributeIDLName = (obj, name) => {
+const _CheckAttributeIDLName = (obj, name) => {
     "use strict";
 
     let
         /**
-         * TODO дописать документацию
          * @type {Object | null}
-         *
          */
         currentObj,
 
         /**
-         * TODO дописать документацию
          * @type {[string]}
-         *
          */
         propertyNames;
 
-    // TODO дополнять таблицу несоответствиями между аттрибутамии и свойствами
+    // TODO: update 'translations' object
     const
         /**
-         * TODO дописать документацию переменной
          * @type {Object.<string, string>}
-         *
          */
         translations = {
             "class": "className",
@@ -201,9 +198,7 @@ const CheckAttributeIDLName = (obj, name) => {
 
     const
         /**
-         * TODO дописать документацию переменной
          * @type {RegExp}
-         *
          */
         re = new RegExp("\\b(" + name + ")\\b", "i");
 
@@ -234,207 +229,214 @@ const CheckAttributeIDLName = (obj, name) => {
 }
 
 /**
- * TODO дописать документацию
- *
- * @private
- * @function
- * @name CreateAttriduteIDL
- * @param {HTMLElement | null} obj - ...
- * @param {string} name - ...
- * @returns {void}
- *
+ * @function _CheckPropertyError
+ * @param {Error} e - error object
+ * @param {string} name - property name
  */
-const CreateAttriduteIDL = (obj, name) => {
+const _CheckPropertyError = (e, name) => {
+    switch (e.name) {
+        case 'TypeError':
+            console.warn(`Property ${name} not found.`);
 
-}
+            return;
 
-/**
- * TODO дописать документацию функции
- *
- * @private
- * @function
- * @name GetValue
- * @param {Binding} binding - ...
- * @param {HTMLElement} obj - ...
- * @returns {*} - ...
- *
- */
-const GetValue = (binding, obj) => {
-    if (binding.attrIDL !== undefined) {
-        return obj[binding.attrIDL]
-    } else {
-        if (obj.hasAttribute(binding.attr)) {
-            return obj.getAttribute(binding.attr)
-        }
-        return ''
+        default:
+            console.warn(e);
     }
 }
 
 /**
- * TODO дописать документацию функции
- *
+ * TODO: docs, impl
  * @private
  * @function
- * @name OneWay
- * @param {Binding} binding - ...
- * @param {HTMLElement} obj - ...
- * @returns {Promise.<void>} - ...
+ * @name _CreateAttributeIDL
+ * @param {HTMLElement | null} el - ...
+ * @param {string} name - ...
+ * @returns {void}
  *
  */
-const OneTime = async (binding, obj) => {
-    const
-        /**
-         * TODO дописать документацию для переменной
-         * @type {string}
-         *
-         */
-        pyGetter = "PROPERTY" + "_" + binding.prop,
+const _CreateAttributeIDL = (el, name) => {}
 
-        /**
-         * TODO дописать документацию для переменной
-         * @type {*}
-         *
-         */
-        value = await eel[pyGetter]()();
+/**
+ * @private
+ * @function
+ * @name _GetValue
+ * @param {BindingData} binding
+ * @param {HTMLElement} el
+ * @returns {*}
+ */
+const _GetValue = (binding, el) => {
+    if (binding.attrIDL !== undefined) {
+        return el[binding.attrIDL]
+    }
 
-    SetValue(binding, obj, value)
+    if (el.hasAttribute(binding.attr)) {
+        return el.getAttribute(binding.attr)
+    }
+
+    return ''
 }
 
 /**
- * TODO дописать документацию функции
- *
  * @private
  * @function
- * @name OneWay
- * @param {Binding} binding - ...
- * @param {BindingData} data - ...
- * @param {HTMLElement} obj - ...
- * @returns {void} - ...
- *
+ * @name _OneTime
+ * @param {BindingData} binding
+ * @param {HTMLElement} el
+ * @returns {Promise.<void>}
  */
-const OneWay = (binding, data, obj) => {
+const _OneTime = async (binding, el) => {
+    let value;
+
+    const pyGetter = "PROPERTY" + "_" + binding.prop;
+
+    try {
+        value = await eel[pyGetter]()();
+    } catch (e) {
+        return _CheckPropertyError(e, pyGetter);
+    }
+
+    _SetValue(binding, el, value)
+}
+
+/**
+ * @private
+ * @function
+ * @name _OneWay
+ * @param {BindingData} binding
+ * @param {Bindings} data
+ * @param {HTMLElement} el
+ * @returns {void}
+ */
+const _OneWay = (binding, data, el) => {
     "use strict";
 
     let
         /**
-         * TODO дописать документацию для переменной
          * @type {Object.<string, Function>}
-         *
          */
-        funcs;
+        funcs,
+        /**
+         * @type {Object.<string, string>}
+         */
+        events,
+        /**
+         * @type {Object.<boolean, string>}
+         */
+        value;
 
     const
-        /**
-         * TODO дописать документацию для переменной
-         * @type {Event}
-         *
-         */
-        event = new Event("BINDING_EVENT" + "_" + binding.prop, {bubbles: true, composed: true}),
-
-        /**
-         * TODO дописать документацию для переменной
-         * @type {string}
-         *
-         */
+        event = new Event("BINDING_EVENT" + "_" + binding.prop,
+            {bubbles: true, composed: true}),
         pyGetter = "PROPERTY" + "_" + binding.prop;
 
     if (binding.attr === TAG_ATTRIBUTES.SPECIAL.datacommand){
         funcs = {
             notify: async () => {
-                await eel[pyGetter]()()
+                try {
+                    value = await eel[pyGetter]()();
+                    if (value.result === true)
+                        el.dispatchEvent(new CustomEvent('commandsuccess',
+                        {bubbles: true, composed: true, detail: value.msg}));
+                    else if (value.result === false)
+                        console.warn('Warning: ' + value.msg);
+                        el.dispatchEvent(new CustomEvent('commanderror',
+                        {bubbles: true, composed: true, detail: value.msg}));
+                } catch (e) {
+                    el.dispatchEvent(new CustomEvent('commanderror',
+                        {bubbles: true, composed: true, detail: value.msg}));
+                    return _CheckPropertyError(e, pyGetter);
+                } finally {
+                    el.dispatchEvent(new CustomEvent('commandfinally',
+                        {bubbles: true, composed: true, detail: value.msg}));
+                }
             },
-            command: (ev) => {
-                document.dispatchEvent(event)
+            command: async (ev) => {
+                ev.preventDefault();
+                // ev.stopImmediatePropagation();
+                el.addEventListener('commandfinally', () => {
+                    console.log('Finally add!') // TODO: Debug
+                    el.addEventListener('click', funcs.command, {once: true, capture: true});
+                }, {once: true})
+                document.dispatchEvent(event);
+                console.log('Start command!'); // TODO: Debug
             }
         }
 
-        document.addEventListener(event.type, funcs.notify)
-        obj.addEventListener('click', funcs.command)
+        events = {
+            notify: event.type,
+            command: 'click'
+        }
+
+        document.addEventListener(event.type, funcs.notify);
+        el.addEventListener('click', funcs.command, {once: true, capture: true});
     } else {
         funcs = {
             notify: async () => {
-                const
-                    /**
-                     * TODO дописать документацию для переменной
-                     * @type {*}
-                     *
-                     */
+                try {
                     value = await eel[pyGetter]()();
+                } catch (e) {
+                    return _CheckPropertyError(e, pyGetter);
+                }
 
-                if (GetValue(binding, obj) !== value) {
-                    SetValue(binding, obj, value)
+                if (_GetValue(binding, el) !== value) {
+                    _SetValue(binding, el, value)
                 }
             }
         }
 
-        document.addEventListener(event.type, funcs.notify)
+        events = {
+            notify: event.type
+        }
 
-        // Loading initial values.
-        document.dispatchEvent(event)
+        document.addEventListener(event.type, funcs.notify)
+        document.dispatchEvent(event) // Loading initial values.
     }
 
-    data[binding.prop][binding.id][binding.attr]['events'] = {notify: event}
+    data[binding.prop][binding.id][binding.attr]['events'] = events
     data[binding.prop][binding.id][binding.attr]['funcs'] = funcs
 }
 
 /**
- * TODO дописать документацию
- *
+ * TODO: docs, impl
  * @private
  * @function
- * @name OneWayToSource
- * @param {Binding} binding - ...
- * @param {Object.<string. string>} bindingTypes - ...
- * @param {BindingData} data - ...
+ * @name _OneWayToSource
+ * @param {BindingData} binding
+ * @param {Bindings} data
  * @returns {void}
- *
  */
-const OneWayToSource = (binding, bindingTypes, data) => {
+const _OneWayToSource = (binding, data) => {
     "use strict";
 
     const
         /**
-         * TODO дописать документацию для переменной
          * @type {HTMLElement}
-         *
          */
-        obj = document.getElementById(binding.id),
+        el = router.getElementInTemplates('#' + binding.id),
 
         /**
-         * TODO дописать документацию для переменной
          * @type {ElementBinder}
-         *
          */
-        bind = new ElementBinder(obj),
+        bind = new ElementBinder(el),
 
         /**
-         * TODO дописать документацию для переменной
          * @type {string}
-         *
          */
         pySetter = "PROPERTY" + "_" + binding.prop + "_SETTER",
 
         /**
-         * TODO дописать документацию переменной
          * @function
          * @name callback
-         * @returns {Promise.<void>} - ...
-         *
+         * @returns {Promise.<void>}
          */
         callback = async () => {
-            console.log(binding.attrIDL + ' to PYTHON')  // TODO FOR DEBUG ONLY
-
-            const
-                /**
-                 * TODO дописать документацию переменной
-                 * @type {*}
-                 *
-                 */
-                value = GetValue(binding, obj);
+            console.log(binding.attrIDL + ' to PYTHON')  // TODO: FOR DEBUG ONLY
+            const value = _GetValue(binding, el);
 
             await eel[pySetter](value)()
-
-            // We cancel the standard behavior of the binder so that the NotifyPropertyChanged is made through Python
+            // We cancel the standard behavior of the binder so that
+            // the NotifyPropertyChanged is made through Python
             throw new CanceledAction('Cancel calling property value assignments inside js.')
         };
 
@@ -442,40 +444,36 @@ const OneWayToSource = (binding, bindingTypes, data) => {
         for (let attr in id) {
             if (! id.hasOwnProperty(attr) ||
                 binding.id === id[attr].info.id ||
-                id[attr].info.type === bindingTypes['OWTS'] ||
-                id[attr].info.type === bindingTypes['OT']) {
+                id[attr].info.type === _bindingTypes['OWTS'] ||
+                id[attr].info.type === _bindingTypes['OT']) {
                 continue
             }
 
-            bind.bind(binding.attrIDL ?? binding.attr, document.getElementById(id[attr].info.id),
-                id[attr].info.attrIDL ?? id[attr].info.attr, { callback: callback })
+            bind.bind(binding.attrIDL ?? binding.attr,
+                router.getElementInTemplates('#' + id[attr].info.id),
+                id[attr].info.attrIDL ?? id[attr].info.attr,
+                { callback: callback })
         }
     }
 
     data[binding.prop][binding.id][binding.attr]['bind'] = bind.data.length === 0 ?
-        bind.bind(binding.attrIDL ?? binding.attr, obj,
+        bind.bind(binding.attrIDL ?? binding.attr, el,
             binding.attrIDL ?? binding.attr, { callback: callback }) : bind
 }
 
 /**
- * TODO дописать документацию функции
- *
  * @private
  * @function
- * @name SetValue
- * @param {Binding} binding - ...
- * @param {HTMLElement} obj - ...
- * @param {*} value - ...
- * @returns {void} - ...
- *
+ * @name _SetValue
+ * @param {BindingData} binding
+ * @param {HTMLElement} el
+ * @param {*} value
+ * @returns {void}
  */
-const SetValue = (binding, obj, value) => {
+const _SetValue = (binding, el, value) => {
     if (binding.attrIDL !== undefined) {
-        obj[binding.attrIDL] = value
-    } else {
-        obj.setAttribute(binding.attr, String(value))
+        el[binding.attrIDL] = value;
     }
-}
-// const BindingEvents = await init_bindings()
 
-// export default { OffBinding, OnBindings }
+    el.setAttribute(binding.attr, String(value));
+}
