@@ -1,0 +1,26 @@
+{% extends 'templates/base/shadow-container.html' %}
+{% block scripts %}
+{% endblock %}
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="/static/main/css/defaults.css">
+    <link rel="stylesheet" type="text/css" href="/static/welcome/css/start-screen.css">
+{% endblock %}
+{% block content %}
+    <div class="start-screen">
+        <h1 class="title">Welcome to Zorro!</h1>
+        <div class="container">
+            <div class="top">
+                <div class="content">
+                    <a class="link-button link-button-main">Open Project</a>
+                    <a class="link-button" data-reload-page="false" href="/welcome/new-project">New Project</a>
+                    <a class="link-button">Clone Project</a>
+                </div>
+            </div>
+            <div class="bottom">
+                <h3>Recent:</h3>
+                <div class="recent-projects">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -2,18 +2,17 @@
 {% block scripts %}
 {% endblock %}
 {% block styles %}
+  <link rel="stylesheet" type="text/css" href="/static/main/css/defaults.css">
   <link rel="stylesheet" type="text/css" href="/static/welcome/css/workspace.css">
 {% endblock %}
 {% block content %}
 <div class="workspace">
-  <div id="left-frame">
-    {% include 'templates/welcome/left-frame.html' %}
+  <div id="left-frame" hidden>
   </div>
-  <div id="left-menu">
-    {% include 'templates/welcome/left-menu.html' %}
+  <div id="left-menu" hidden>
   </div>
   <div id="main-frame">
-    {% include 'templates/welcome/main-frame.html' %}
+    {% include 'templates/welcome/start-screen.html' %}
   </div>
 </div>
 {% endblock %}

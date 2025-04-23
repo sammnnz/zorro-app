@@ -1,0 +1,38 @@
+.container{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100vh - 30px);
+    padding: 24px 48px;
+}
+
+.top{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.top h3{
+    margin-right: 12px;
+}
+
+.bottom{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.content{
+    max-width: 480px;
+    width: 480px;
+    height: 24px;
+    padding: 2px;
+    text-wrap: nowrap;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 14px;
+    background: #f0f0f0;
+    outline: none !important;
+    /*outline: #7b7b7b auto 1px;*/
+}

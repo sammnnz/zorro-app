@@ -1,0 +1,22 @@
+{% extends 'templates/base/shadow-container.html' %}
+{% block scripts %}
+  <script src="/static/welcome/js/new-project.js" type="module"></script>
+{% endblock %}
+{% block styles %}
+  <link rel="stylesheet" type="text/css" href="/static/main/css/defaults.css">
+  <link rel="stylesheet" type="text/css" href="/static/welcome/css/new-project.css">
+{% endblock %}
+{% block content %}
+  <div class="container">
+    <div class="top">
+      <h3>Location:</h3>
+      <div id="welcome_new_project_location" class="content"
+           textcontent="{% binding WelcomeViewModel.location TwoWay %}" contenteditable="true"></div>
+    </div>
+    <div class="bottom">
+      <button id="welcome_new_project_create_button" class="link-button link-button-main"
+              data-command="{% binding WelcomeViewModel.new_project OneWay %}">Create</button>
+      <button id="back_button" class="link-button">Back</button>
+    </div>
+  </div>
+{% endblock %}
