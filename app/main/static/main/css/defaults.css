@@ -29,6 +29,7 @@ h1, h2, h3, h4, h5, h6{
 
 a{
     cursor: default;
+    user-select: none;
     -webkit-user-drag: none !important;
 }
 
@@ -60,5 +61,32 @@ img{
 }
 
 .dummy{
-    display: none;
+    display: none !important;
+}
+
+.link-button{
+    padding: 12px;
+    margin-right: 24px;
+    background: #F0F0F0;
+    color: #7B7B7B;
+    text-decoration: none;
+}
+
+.link-button:hover{
+    background: #C0C0C0;
+    color: #ffffff;
+}
+
+.link-button:last-child{
+    margin-right: 0;
+}
+
+.link-button-main{
+    background: #D0CD26 !important;
+    color: #ffffff !important;
+}
+
+.link-button-main:hover{
+    background: #9d9b24 !important;
+    color: #7B7B7B !important;
 }

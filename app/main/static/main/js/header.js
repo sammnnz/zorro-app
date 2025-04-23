@@ -1,9 +1,6 @@
 /*
 * Top-frame buttons logic
 */
-
-console.log('Header.js run!')
-
 /**
  * @function
  * @name init
@@ -17,8 +14,8 @@ async function init ($context = undefined) {
 
     const win = window.CurrentWindowAPI;
 
-    const SCREEN_HEIGHT = window.screen.availHeight,
-        SCREEN_WIDTH  = window.screen.availWidth;
+    const SCREEN_HEIGHT = window.screen.availHeight / 1.5,
+        SCREEN_WIDTH  = window.screen.availWidth / 2;
 
     const $cls_btn = $context.find('.close-btn'),
         $max_btn = $context.find('.maximize-btn'),
@@ -46,8 +43,8 @@ async function init ($context = undefined) {
         }
     };
 
+    win.unmaximize();
     window.resizeTo(SCREEN_WIDTH, SCREEN_HEIGHT);
-    await windowMaximize();
     await changeMaximizeButtonStyle();
 
     $cls_btn.click(windowClose);
