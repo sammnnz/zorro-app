@@ -20,8 +20,4 @@ const NotifyPropertyChanged = function (propertyName) {
 }
 
 await UpdateBindings(); // In first load
-window.addEventListener('routesuccess', async () => {
-    await UpdateBindings();
-})
-
 eel.expose(NotifyPropertyChanged, 'NotifyPropertyChanged')
