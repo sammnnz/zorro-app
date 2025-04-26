@@ -1,6 +1,7 @@
 /**
  * Bindings API
  */
+import { Binder, CanceledAction, CheckAttributeIDLName, CheckAttributeName } from "./binder.js"
 
 // Type definitions
 /**
@@ -97,7 +98,7 @@ property ${binding.prop} and clear listeners.`);
         }
 
         binding['attr'] = CheckAttributeName(el, binding.attr)[0]
-        binding['attrIDL'] = _CheckAttributeIDLName(el, binding.attr)
+        binding['attrIDL'] = CheckAttributeIDLName(el, binding.attr)
         bindings[binding.prop] = bindings[binding.prop] ?
             bindings[binding.prop] : {}
         bindings[binding.prop][binding.id] =
@@ -143,9 +144,9 @@ property ${binding.prop} and clear listeners.`);
         }
     }
 
-    // Create binds with ElementBinder for OneWayToSource and TwoWay bindings
+    // Create binds with Binder class for OneWayToSource and TwoWay bindings
     for (let binding of temp) {
-        _OneWayToSource(binding, bindings)
+        _OneWayToSource(binding, bindings);
     }
 }
 
@@ -160,73 +161,6 @@ const _bindingTypes = {
     'OWTS': 'OneWayToSource',
     'TW':   'TwoWay'
  };
-
-/**
- * TODO: docs, impl
- * @private
- * @function
- * @name _CheckAttributeIDLName
- * @param {HTMLElement | null} obj
- * @param {string} name
- * @returns {string | undefined}
- */
-const _CheckAttributeIDLName = (obj, name) => {
-    "use strict";
-
-    let
-        /**
-         * @type {Object | null}
-         */
-        currentObj,
-
-        /**
-         * @type {[string]}
-         */
-        propertyNames;
-
-    // TODO: update 'translations' object
-    const
-        /**
-         * @type {Object.<string, string>}
-         */
-        translations = {
-            "class": "className",
-            "for": "htmlFor",
-        };
-
-    name = translations[name.toLowerCase()] || name
-
-    const
-        /**
-         * @type {RegExp}
-         */
-        re = new RegExp("\\b(" + name + ")\\b", "i");
-
-    currentObj = obj
-
-    while (currentObj !== null) {
-        if (currentObj.hasOwnProperty(name)) {
-            break
-        }
-
-        propertyNames = Object.getOwnPropertyNames(currentObj)
-        propertyNames = propertyNames.join(' ').match(re)
-
-        if (propertyNames === null) {
-            currentObj = Object.getPrototypeOf(currentObj)
-            continue
-        }
-
-        name = propertyNames[0]
-        break
-    }
-
-    if (currentObj === null) {
-        return undefined
-    }
-
-    return name
-}
 
 /**
  * @function _CheckPropertyError
@@ -330,7 +264,7 @@ const _OneWay = (binding, data, el) => {
             {bubbles: true, composed: true}),
         pyGetter = "PROPERTY" + "_" + binding.prop;
 
-    if (binding.attr === TAG_ATTRIBUTES.SPECIAL.datacommand){
+    if (binding.attr === 'data-command'){
         funcs = {
             notify: async () => {
                 try {
@@ -416,9 +350,9 @@ const _OneWayToSource = (binding, data) => {
         el = router.getElementInTemplates('#' + binding.id),
 
         /**
-         * @type {ElementBinder}
+         * @type {Binder}
          */
-        bind = new ElementBinder(el),
+        bind = new Binder(el),
 
         /**
          * @type {string}

@@ -2,8 +2,7 @@
  * Binder.js
  */
 
-
-// Some type definitions
+// Type definitions
 /**
  * BinderData type
  * @typedef {Object.<string, Object.<string, Set>>} BinderData
@@ -14,26 +13,14 @@
  * @typedef {HTMLElement} BinderElement
  */
 
+// Exports
 /**
- * TagAttributes type
- * @typedef {Object} TagAttributes
- * @property {string} CUSTOM
- * @property {[..., string]} GLOBAL
- * @property {Object.<string, [..., string]>} OTHER
- * @property {Object.<string, string>} SPECIAL
- */
-
-
-// Class ElementBinder
-/**
- * TODO дописать документацию ElementBinder
- * @class ElementBinder
+ * @class Binder
  * @property {BinderData} data
  * @property {BinderElement} instance
  */
-class ElementBinder {
+export class Binder {
     /**
-     * TODO дописать документацию
      * @constructor
      * @param {BinderElement} obj
      * @returns {Object}
@@ -75,181 +62,140 @@ class ElementBinder {
     }
 
     /**
-     * TODO дописать документацию
-     *
      * @private
      * @method
      * @name modifiedDescriptor
-     * @param {BinderElement} obj - ...
-     * @param {string} propertyName - ...
-     * @param {Function} callback - ...
-     * @returns {boolean} - ...
+     * @param {BinderElement} el
+     * @param {string} propertyName
+     * @param {Function} callback
+     * @returns {boolean}
      *
      */
-    #modifiedDescriptor = (obj, propertyName, callback) => {
+    #modifiedDescriptor = (el, propertyName, callback) => {
         "use strict";
 
         let
             /**
-             * TODO дописать документацию для переменной
              * @type {BinderElement}
-             *
              */
-            parentObj;
+            parent;
 
-        parentObj = this.instance
-        while (parentObj !== null) {
-            if (parentObj.hasOwnProperty(propertyName)) {
-                break
-            }
+        parent = this.instance
+        while (parent) {
+            if (parent.hasOwnProperty(propertyName)) break;
 
-            parentObj = Object.getPrototypeOf(parentObj)
+            parent = Object.getPrototypeOf(parent);
         }
 
-        if (parentObj === null) {
-            return false // Case when property don't found.
-        }
+        // Case when property don't found.
+        if (!parent) return false;
 
         const
             /**
-             * TODO дописать документацию для переменной
              * @type {PropertyDescriptor | undefined}
-             *
              */
-            descriptor = Object.getOwnPropertyDescriptor(parentObj, propertyName),
+            descriptor = Object.getOwnPropertyDescriptor(parent, propertyName),
 
             /**
-             * TODO дописать документацию для переменной
              * @type {PropertyDescriptor | Object | undefined}
-             *
              */
             newDescriptor = {},
 
             /**
-             * TODO дописать документацию для переменной
-             * @type {function | undefined}
-             *
+             * @type {Function | undefined}
              */
             oldGetter = descriptor.get,
 
             /**
-             * TODO дописать документацию для переменной
-             * @type {function | undefined}
-             *
+             * @type {Function | undefined}
              */
             oldSetter = descriptor.set;
 
         for (let list of Object.entries(descriptor))
-            if (list[0] !== 'get' && list[0] !== 'set') {
-                newDescriptor[list[0]] = list[1]
-            }
+            if (list[0] !== 'get' && list[0] !== 'set') newDescriptor[list[0]] = list[1];
 
-        newDescriptor['get'] = oldGetter ?  () => {
-                return oldGetter.call(obj)
+        newDescriptor['get'] = oldGetter instanceof Function ?  () => {
+                return oldGetter.call(el);
         } : oldGetter
-        newDescriptor['set'] = oldSetter ? (val) => {
-            if (obj[propertyName] !== val) {
-                oldSetter.call(obj, val)
-                this.#updateBoundProperties(propertyName, val, callback)
+        newDescriptor['set'] = oldSetter instanceof Function ? (val) => {
+            if (el[propertyName] !== val) {
+                oldSetter.call(el, val);
+                this.#updateBoundProperty(propertyName, val, callback);
             }
         } : oldSetter
-        newDescriptor['configurable'] = true
-
+        newDescriptor['configurable'] = true;
         Object.defineProperty(this.instance, propertyName, newDescriptor)
 
         return true
     }
 
     /**
-     * TODO дописать документацию
-     *
      * @private
      * @method
      * @name updateBoundProperties
-     * @param {string} propertyName - ...
-     * @param {*} value - ...
-     * @param {Function} callback - ...
+     * @param {string} propertyName
+     * @param {*} value
+     * @param {Function} callback
      * @returns {void}
-     *
      */
-     #updateBoundProperties = (propertyName, value, callback) => {
+     #updateBoundProperty = (propertyName, value, callback) => {
          "use strict";
 
          this.oldValue[propertyName] = value
-
          callback?.()?.then(() => {
-            for (let k of Object.keys(this.data[propertyName])) {
+            for (let key of Object.keys(this.data[propertyName])) {
                 let
                    /**
-                    * TODO дописать документацию переменной
                     * @type {Set}
-                    *
                     */
-                    p = this.data[propertyName][k];
+                    p = this.data[propertyName][key];
 
                 for (let o of p) {
-                        if (k in o && o[k] !== value) {
-                            o[k] = value
-                        }
+                        if (key in o && o[key] !== value) o[key] = value;
                 }
             }
-        })?.catch((er) => {
-            if (er instanceof CanceledAction) {
-                console.log(er)
-            } else {
-                throw er
-            }
+        })?.catch((e) => {
+            if (e instanceof CanceledAction)
+                console.log(e);
+            else
+                throw e;
         })
      }
 
     /**
-     * TODO дописать документацию
      * Create a binding to a property of the target object.
-     *
      * @public
      * @method
      * @name bind
-     * @param {string} ownPropertyName - ...
-     * @param {BinderElement} obj - ...
-     * @param {string} propertyName - ...
+     * @param {string} ownPropertyName
+     * @param {BinderElement} el
+     * @param {string} propertyName
      * @param {Object} options
-     * @returns {ElementBinder} - ...
-     * @example
-     * ...
-     *
+     * @returns {Binder}
      */
-    bind = (ownPropertyName, obj, propertyName, options) => {
+    bind = (ownPropertyName, el, propertyName, options) => {
         "use strict";
 
         let
             /**
-             * TODO дописать документацию для переменной
              * @type {Object}
-             *
              */
             defaults = {
                 callback: undefined
             },
-
             /**
-             * TODO дописать документацию для переменной
              * @type {Object}
-             *
              */
             observerOptions;
 
         const
             /**
-             * TODO дописать документацию для переменной
              * @type {[string, boolean]}
-             *
              */
-            [attr, is_standartAttr] = CheckAttributeName(this.instance, ownPropertyName),
+            [attr, isStandartAttr] = CheckAttributeName(this.instance, ownPropertyName),
 
             /**
-             * TODO дописать документацию для переменной
              * @type {MutationObserver}
-             *
              */
             mutation = new MutationObserver(async (mutationsList) => {
                 for (let mutation_ of mutationsList) {
@@ -257,54 +203,52 @@ class ElementBinder {
                         if (mutation_.attributeName === attr) {
                             const
                                 /**
-                                 * TODO дописать документацию для переменной
                                  * @type {string}
-                                 *
                                  */
                                 attr_ = this.instance.getAttribute(attr),
 
                                 /**
-                                 * TODO дописать документацию для переменной
                                  * @type {*}
-                                 *
                                  */
-                                value = this.instance[ownPropertyName] ? this.instance[ownPropertyName] : attr_;
+                                value = this.instance[ownPropertyName] ?
+                                    this.instance[ownPropertyName] : attr_;
 
                             if (value === attr_ && value !== this.oldValue[ownPropertyName]) {
-                                this.#updateBoundProperties(ownPropertyName, value, defaults.callback)
-                            } else if (value !== attr_ && is_standartAttr) {  // Case when attribute mutation does not affect property change
-                                mutation.disconnect()
+                                this.#updateBoundProperty(ownPropertyName, value, defaults.callback)
+                            // Case when attribute mutation does not affect property change
+                            } else if (value !== attr_ && isStandartAttr) {
+                                mutation.disconnect();
                             }
 
-                            break
+                            break;
                         }
                     } else if (mutation_.type === 'characterData') {
                         if (this.instance[ownPropertyName] !== this.oldValue[ownPropertyName]) {
-                            this.#updateBoundProperties(ownPropertyName, this.instance[ownPropertyName], defaults.callback)
+                            this.#updateBoundProperty(ownPropertyName, this.instance[ownPropertyName], defaults.callback);
                         } else {
-                            // TODO доделать имплементацию отключения мутации
+                            // TODO: impl turn off mutation
                             // mutation.disconnect()
                             // observerOptions['characterData'] = false
                             // mutation.observe(this.instance, observerOptions)
                         }
 
-                        break
+                        break;
                     } else if (mutation_.type === 'childList') {
                         if (this.instance[ownPropertyName] !== this.oldValue[ownPropertyName]) {
-                            this.#updateBoundProperties(ownPropertyName, this.instance[ownPropertyName], defaults.callback)
+                            this.#updateBoundProperty(ownPropertyName, this.instance[ownPropertyName], defaults.callback);
                         } else {
-                            // TODO доделать имплементацию отключения мутации
+                            // TODO: impl turn off mutation
                             // mutation.disconnect()
                             // observerOptions['childList'] = false
                             // mutation.observe(this.instance, observerOptions)
                         }
 
-                        break
+                        break;
                     }
                 }
             });
 
-        defaults = Object.assign({}, defaults, options)
+        defaults = Object.assign({}, defaults, options);
 
         // Case when property exist and attribute is standart || Case when property NOT exist
         observerOptions = {
@@ -317,22 +261,20 @@ class ElementBinder {
             this.data[ownPropertyName] : {}
         this.data[ownPropertyName][propertyName] = this.data[ownPropertyName][propertyName] ?
             this.data[ownPropertyName][propertyName] : new Set()
-        this.data[ownPropertyName][propertyName].add(obj)
+        this.data[ownPropertyName][propertyName].add(el)
 
         // Save mutation and listener of input event for unbind
         this.secureData[ownPropertyName] = this.secureData[ownPropertyName] ?
             this.secureData[ownPropertyName] : {}
         this.secureData[ownPropertyName][propertyName] = this.secureData[ownPropertyName][propertyName] ?
             this.secureData[ownPropertyName][propertyName] : new Map()
-        this.secureData[ownPropertyName][propertyName].set(obj, {mutation: mutation})
+        this.secureData[ownPropertyName][propertyName].set(el, {mutation: mutation})
 
         // Case when property exist
         if (this.#modifiedDescriptor(this.instance, ownPropertyName, defaults.callback)) {
             const
                 /**
-                 * TODO дописать документацию для переменной
                  * @type {Object.<string, null>}
-                 *
                  */
                 inputTags = {
                     'input': null,
@@ -343,7 +285,6 @@ class ElementBinder {
             if (this.instance.isContentEditable || this.instance.nodeName.toLowerCase() in inputTags) { // for Input event
                 const
                     /**
-                     * TODO дописать документацию для функции
                      * @function
                      * @name onInput
                      * @param {event} ev
@@ -351,11 +292,10 @@ class ElementBinder {
                      *
                      */
                     onInput = (ev) => {
-                        this.#updateBoundProperties(ownPropertyName, this.instance[ownPropertyName], defaults.callback)
+                        this.#updateBoundProperty(ownPropertyName, this.instance[ownPropertyName], defaults.callback)
                     },
 
                     /**
-                     * TODO дописать документацию для функции
                      * @function
                      * @name onceInput
                      * @param {event} ev
@@ -366,22 +306,22 @@ class ElementBinder {
                     onceInput = (ev) => {
                         this.instance.removeEventListener('input', onceInput)
 
-                        delete this.secureData[ownPropertyName][propertyName].get(obj)['input']
+                        delete this.secureData[ownPropertyName][propertyName].get(el)['input']
 
                         if (this.instance[ownPropertyName] !== this.oldValue[ownPropertyName]) {
                             this.instance.addEventListener('input', onInput)
-                            this.secureData[ownPropertyName][propertyName].get(obj)['input'] = onInput
+                            this.secureData[ownPropertyName][propertyName].get(el)['input'] = onInput
                             onInput(ev)
                         }
                     };
 
                 this.instance.addEventListener('input', onceInput)
 
-                this.secureData[ownPropertyName][propertyName].get(obj)['input'] = onceInput
+                this.secureData[ownPropertyName][propertyName].get(el)['input'] = onceInput
             }
 
             // Case when property exist and attribute is custom
-            if (! is_standartAttr) {
+            if (! isStandartAttr) {
                 observerOptions = {
                     attributes: true,
                     attributeFilter: [attr],
@@ -398,49 +338,40 @@ class ElementBinder {
     }
 
     /**
-     * TODO дописать документацию
-     *
+     * TODO: impl
      * @public
      * @method
      * @name unbind
-     * @param {string} ownPropertyName - ...
-     * @param {BinderElement} obj - ...
-     * @param {string} propertyName - ...
-     * @returns {ElementBinder} - ...
-     * @example
-     * ...
-     *
+     * @param {string} ownPropertyName
+     * @param {BinderElement} el
+     * @param {string} propertyName
+     * @returns {Binder}
      */
-    unbind = (ownPropertyName, obj, propertyName) => {
+    unbind = (ownPropertyName, el, propertyName) => {
         "use strict";
 
-        // TODO доделать имплеменатцию unbind
         const
             /**
-             * TODO дописать документацию для переменной
              * @type {Map}
-             *
              */
-            obj_ = this.secureData[ownPropertyName][propertyName].get(obj);
+            _el = this.secureData[ownPropertyName][propertyName].get(el);
 
         try {
-            if (obj_.hasOwnProperty('mutation')) {
-                obj_['mutation'].disconnect()
-            }
+            if (_el.hasOwnProperty('mutation'))
+                _el['mutation'].disconnect();
 
-            delete obj_['mutation']
+            delete _el['mutation']
         } catch (ex) {}
 
         try {
-            if (obj_.hasOwnProperty('input')) {
-                this.instance.removeEventListener('input', obj_['input'])
-            }
+            if (_el.hasOwnProperty('input'))
+                this.instance.removeEventListener('input', _el['input']);
 
-            delete obj_['input']
+            delete _el['input']
         } catch (ex) {}
 
-        this.secureData[ownPropertyName][propertyName].delete(obj)
-        this.data[ownPropertyName][propertyName].delete(obj)
+        this.secureData[ownPropertyName][propertyName].delete(el)
+        this.data[ownPropertyName][propertyName].delete(el)
 
         if (! Object.keys(this.secureData[ownPropertyName][propertyName]).length) {
             this.data[ownPropertyName][propertyName] = undefined
@@ -457,23 +388,18 @@ class ElementBinder {
     }
 }
 
-
-// Error classes
 /**
- * TODO дописать документацию DOMBinder
+ * Signal for cancel calling property value assignments inside js.
  * @class CanceledAction
  * @extends {Error}
  * @property {string} name
  * @property {string} message
  * @property {string | undefined} stack
- *
  */
-class CanceledAction extends Error {
+export class CanceledAction extends Error {
     /**
-     * TODO дописать документацию
      * @constructor
      * @param {string} message - cancel message
-     *
      */
     constructor(message) {
         super(message)
@@ -481,78 +407,121 @@ class CanceledAction extends Error {
     }
 }
 
-
-// Some functions
 /**
- * TODO дописать документацию
+ * TODO: docs, impl
+ * @private
  * @function
- * @name CheckAttributeName
- * @param {BinderElement} obj - ...
- * @param {string} name - ...
- * @returns {[string, boolean]}
- *
+ * @name CheckAttributeIDLName
+ * @param {BinderElement | null} el
+ * @param {string} name
+ * @returns {string | undefined}
  */
-const CheckAttributeName = (obj, name) => {
+export const CheckAttributeIDLName = (el, name) => {
     "use strict";
 
-    // TODO доделать имплементацию CheckAttributeName
     let
         /**
-         * TODO дописать документацию для переменной
+         * @type {Object | null}
+         */
+        currentObj,
+
+        /**
+         * @type {[string]}
+         */
+        propertyNames;
+
+    // TODO: update 'translations' object
+    const
+        /**
+         * @type {Object.<string, string>}
+         */
+        translations = {
+            "class": "className",
+            "for": "htmlFor",
+        };
+
+    name = translations[name.toLowerCase()] || name
+
+    const
+        /**
+         * @type {RegExp}
+         */
+        re = new RegExp("\\b(" + name + ")\\b", "i");
+
+    currentObj = el
+
+    while (currentObj !== null) {
+        if (currentObj.hasOwnProperty(name)) {
+            break
+        }
+
+        propertyNames = Object.getOwnPropertyNames(currentObj)
+        propertyNames = propertyNames.join(' ').match(re)
+
+        if (propertyNames === null) {
+            currentObj = Object.getPrototypeOf(currentObj)
+            continue
+        }
+
+        name = propertyNames[0]
+        break
+    }
+
+    if (currentObj === null) {
+        return undefined
+    }
+
+    return name
+}
+
+/**
+ * Check HTML attribute name and return list with name and check result (bool)
+ * @function
+ * @name CheckAttributeName
+ * @param {BinderElement} el
+ * @param {string} name
+ * @returns {[string, boolean]}
+ */
+export const CheckAttributeName = (el, name) => {
+    "use strict";
+
+    let
+        /**
          * @type {RegExpMatchArray | null}
-         *
          */
         matches,
 
         /**
-         * TODO дописать документацию для переменной
          * @type {RegExp}
-         *
          */
         re;
 
-    name = name.toLowerCase()
-
-    re = new RegExp("(" + TAG_ATTRIBUTES.CUSTOM + ")", "i")
-    matches = name.match(re)
-    if (matches !== null) {
-        return [matches[0], true]
-    }
+    name = name.toLowerCase();
+    re = new RegExp("(" + TAG_ATTRIBUTES.CUSTOM + ")", "i");
+    matches = name.match(re);
+    if (matches instanceof Array) return [matches[0], true];
 
     for (let attr of TAG_ATTRIBUTES.GLOBAL) {
-        re = new RegExp("(" + attr + ")", "i")
-        matches = name.match(re)
-
-        if (matches !== null) {
-            return [attr, true]
-        }
+        re = new RegExp("(" + attr + ")", "i");
+        matches = name.match(re);
+        if (matches instanceof Array) return [attr, true];
     }
 
-    const
-        /**
-         * TODO дописать документацию для переменной
-         * @type {string}
-         *
-         */
-        tagName = obj.nodeName.toLowerCase();
-
+    const tagName = el.nodeName.toLowerCase();
     for (let attr of TAG_ATTRIBUTES.OTHER[tagName]) {
-        re = new RegExp("(" + attr + ")", "i")
-        matches = name.match(re)
-
-        if (matches !== null) {
-            return [attr, true]
-        }
+        re = new RegExp("(" + attr + ")", "i");
+        matches = name.match(re);
+        if (matches instanceof Array) return [attr, true];
     }
 
     return [name, false]
 }
 
+// Privates
+
 // Other objects
 /**
- * TODO дописать доументацию
- * @type {TagAttributes}
- *
+ * Supported HTML attributes for bindings
  */
 const TAG_ATTRIBUTES = {
     CUSTOM: 'data-.*',
@@ -692,10 +661,5 @@ const TAG_ATTRIBUTES = {
         video: ['autoplay', 'autopictureinpicture', 'controls', 'controlslist', 'crossorigin', 'disablepictureinpicture', 'disableremoteplayback', 'height', 'loop', 'muted', 'playsinline', 'poster', 'preload', 'src', 'width'],
         wbr: [],
         xmp: [],
-    },
-    SPECIAL: {
-        datacommand: 'data-command'
     }
 }
-
-// export default {CheckAttributeName, TAG_ATTRIBUTES}
