@@ -23,10 +23,6 @@ def show(**kwargs):
     params = get_settings()
     params.update(kwargs)
 
-    # TODO: delete
-    from zorro.mvvm import init
-    init()  # For initialize js static routes of mvvm
-
     from zorro.mvvm import BindingExtension
     if not isinstance(params['jinja'], dict):
         print("Warning: 'JINJA' (from settings.py) must be dict.")
