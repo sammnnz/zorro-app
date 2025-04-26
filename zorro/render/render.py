@@ -73,7 +73,6 @@ class FSLRender(BaseRender):
         # return jinja_environment
 
     def load_static_file(self, app, path):
-        print("Load static:", path)
         for root in self.static_roots:
             if os.path.exists(os.path.join(root, app, path)):
                 response = btl.static_file(os.path.join(app, path), root=root)
