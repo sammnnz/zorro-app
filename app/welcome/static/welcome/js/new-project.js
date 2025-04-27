@@ -16,7 +16,7 @@ $(function () {
     const onClick_Back = () => {
         createButton.removeEventListener('click', onClick);
         createButton.removeEventListener('commanderror', onCommandError);
-        createButton.removeEventListener('commandsuccess', onCommandSuccess, {once: true});
+        createButton.removeEventListener('commandsuccess', onCommandSuccess);
         window.history.back();
     }
 
@@ -24,14 +24,14 @@ $(function () {
         backButton.removeAttribute('disabled');
         createButton.removeAttribute('disabled');
         location.setAttribute('contenteditable', 'true');
-        alert(e.detail)
+        alert(e.detail);
     }
 
     const onCommandSuccess = () => {
         createButton.removeEventListener('click', onClick);
         createButton.removeEventListener('commanderror', onCommandError);
-        backButton.removeEventListener('click', onClick_Back, {once: true});
-        alert('Route to NotePad!'); // TODO: Debug
+        backButton.removeEventListener('click', onClick_Back);
+        router.goTo("/notepad");
     }
 
     createButton.addEventListener('click', onClick);

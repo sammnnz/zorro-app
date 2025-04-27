@@ -5,19 +5,25 @@ __all__ = ['WelcomeViewModel']
 
 
 class WelcomeViewModel(BaseVM):
-    exposes = ('new_project', 'location')
+    exposes = ('create_new_project', 'location', 'name')
 
     def __init__(self):
         self.welcome_model = WelcomeModel()
-        self.new_project = BaseCommand(execute=self.welcome_model.new_project)
+        self.create_new_project = BaseCommand(execute=self.welcome_model.create_new_project)
         self.location = ''
+        self.name = ''
 
     location = property(
         fget=...,
         fset=...
     )
 
+    name = property(
+        fget=...,
+        fset=...
+    )
+
     # Command properties
-    new_project = property(
+    create_new_project = property(
         fget=...,
     )

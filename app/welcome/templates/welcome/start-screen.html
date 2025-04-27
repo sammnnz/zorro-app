@@ -1,5 +1,6 @@
 {% extends 'templates/base/shadow-container.html' %}
 {% block scripts %}
+    <script src="/static/welcome/js/start-screen.js" type="module"></script>
 {% endblock %}
 {% block styles %}
     <link rel="stylesheet" type="text/css" href="/static/main/css/defaults.css">
@@ -19,6 +20,7 @@
             <div class="bottom">
                 <h3>Recent:</h3>
                 <div class="recent-projects">
+                    <a id="welcome_top_recent_project" textcontent="{% binding NotepadViewModel.project_title OneTime %}"></a>
                 </div>
             </div>
         </div>
