@@ -5,7 +5,7 @@ from eel import expose
 from multipledispatch import dispatch
 from pymagic9 import getframe, nameof, PropertyMeta
 from types import FunctionType, LambdaType, MethodType
-from zorro.exceptions import DataContextError, ModelError
+from src.exceptions import DataContextError, ModelError
 
 from .interfaces import ICommand, INotifyPropertyChanged
 

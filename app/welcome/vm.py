@@ -1,4 +1,4 @@
-from zorro.mvvm import BaseVM, BaseCommand
+from src.mvvm import BaseVM, BaseCommand
 from .models import WelcomeModel
 
 __all__ = ['WelcomeViewModel']

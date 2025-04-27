@@ -1,4 +1,4 @@
-from zorro.render import get_template, Response
+from src.render import get_template, Response
 
 __all__ = ['notepad', 'top_frame_content', 'workspace']
 

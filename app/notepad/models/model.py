@@ -1,4 +1,4 @@
-from zorro.mvvm import BaseM
+from src.mvvm import BaseM
 
 __all__ = ["NotepadModel"]
 

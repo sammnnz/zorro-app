@@ -1,8 +1,7 @@
-import zorro
-
 from app.main.vm import MainViewModel
+from src import show
 
 
 if __name__ == '__main__':
     data_context = MainViewModel()
-    zorro.show(disable_cache=True)
+    show(disable_cache=True)

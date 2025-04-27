@@ -20,7 +20,7 @@ function createWindow () {
     }
   })
 
-  const { url } = require('./zorro/core/js/url');
+  const { url } = require('./src/core/js/url');
 
   // Load the index.html of the app.
   mainWindow.loadURL(url)

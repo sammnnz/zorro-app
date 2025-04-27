@@ -3,7 +3,7 @@ import settings as _settings
 
 from bottle import static_file
 from eel import _set_response_headers
-from zorro.render import get_template, render_template, Response
+from src.render import get_template, render_template, Response
 
 __all__ = ['header', 'main', 'node_modules']
 

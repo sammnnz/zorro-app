@@ -7,7 +7,7 @@ import typing as t
 from .environment import BaseEnvironment
 from .loader import BaseFileSystemLoader
 from jinja2 import Environment, FileSystemBytecodeCache, select_autoescape
-from zorro.utils import get_static_roots, get_template_roots
+from src.utils import get_static_roots, get_template_roots
 
 __all__ = ['BaseRender', 'FSLRender', 'get_template', 'render_template', 'Response']
 

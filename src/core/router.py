@@ -2,7 +2,7 @@ import bottle as btl
 import os
 
 from typing import Any, Callable, Dict, List, Tuple
-from zorro.utils import get_app_root, load_objects
+from src.utils import get_app_root, load_objects
 
 __all__ = ['setup_hooks', 'setup_routes', 'update_routes_and_hooks']
 

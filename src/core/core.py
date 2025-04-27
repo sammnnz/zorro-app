@@ -9,8 +9,8 @@ import subprocess as sps
 import sys
 
 from .router import update_routes_and_hooks
-from zorro.render import FSLRender
-from zorro.utils import get_app_root, get_settings
+from src.render import FSLRender
+from src.utils import get_app_root, get_settings
 
 __all__ = ['show']
 
@@ -23,7 +23,7 @@ def show(**kwargs):
     params = get_settings()
     params.update(kwargs)
 
-    from zorro.mvvm import BindingExtension
+    from src.mvvm import BindingExtension
     if not isinstance(params['jinja'], dict):
         print("Warning: 'JINJA' (from settings.py) must be dict.")
         params['jinja'] = {
@@ -52,7 +52,7 @@ def _init(apps: list[str]):
 
     js_functions = []
     try:
-        for app in apps + ['zorro.mvvm']:
+        for app in apps + ['src.mvvm']:
             eel.init(get_app_root(app), allowed_extensions=['.js'])
             js_functions += eel.__dict__['_js_functions']
 

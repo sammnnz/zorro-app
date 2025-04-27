@@ -3,7 +3,7 @@
 
 process.once('loaded', () => {
     // Load Zorro-Core API (router, states, ...)
-    require('./zorro/core/js/preload');
+    require('./src/core/js/preload');
 
     const { contextBridge, ipcRenderer } = require('electron');
 

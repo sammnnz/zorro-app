@@ -1,6 +1,6 @@
 from app.notepad.vm import NotepadViewModel
 from app.welcome.vm import WelcomeViewModel
-from zorro.mvvm import BaseVM, DataContext
+from src.mvvm import BaseVM, DataContext
 
 
 @DataContext

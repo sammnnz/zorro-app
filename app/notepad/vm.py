@@ -1,5 +1,5 @@
 from pymagic9 import nameof
-from zorro.mvvm import BaseVM
+from src.mvvm import BaseVM
 from .models import NotepadModel
 
 __all__ = ['NotepadViewModel']

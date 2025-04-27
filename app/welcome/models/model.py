@@ -1,7 +1,7 @@
 import os
 import pathlib
 
-from zorro.mvvm import BaseM, CancelCommand, DataContext
+from src.mvvm import BaseM, CancelCommand, DataContext
 
 __all__ = ["WelcomeModel"]
 
