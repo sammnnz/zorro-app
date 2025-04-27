@@ -110,10 +110,10 @@ class BindingExtension(Extension):
         i = -1
         for bind in _bindings:
             i += 1
-            if not hasattr(bind, 'prop'):
+            if 'prop' not in bind:
                 del _bindings[i]
-                if bind['comment']:
-                    break
+                if 'comment' in bind and bind['comment']:
+                    continue
 
                 del bind['comment']
                 bind['prop'], bind['type'] = temp[0].strip(), temp[1].strip()
