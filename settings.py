@@ -5,6 +5,7 @@ ROOT_PATH = os.getcwd()
 APPS = [
     'zorro.app.base',
     'app.main',
+    'app.notepad',
     'app.welcome'
 ]
 
