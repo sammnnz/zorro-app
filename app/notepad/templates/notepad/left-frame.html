@@ -1,0 +1,18 @@
+{% extends 'templates/base/shadow-container.html' %}
+{% block scripts %}
+<script src="/static/notepad/js/left-frame.js" type="module"></script>
+<!--<script async="true" src="/static/welcome/js/test.js" type="module"></script> /* TODO: for debug */-->
+{% endblock %}
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="/static/notepad/css/left-frame.css">
+{% endblock %}
+{% block content %}
+    <div class="left-frame-container">
+        <button id="explorer-btn">
+            <svg width="24" height="18" viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- /static/welcome/img/icon-file.svg -->
+                <path d="M23.7068 4.33808C23.4536 4.03386 23.071 3.85703 22.6668 3.85703H21.3335C21.3335 3.14693 20.7366 2.57136 20.0002 2.57136H18.6669V1.28568C18.6669 0.575575 18.07 0 17.3336 0H1.33329C0.59689 0 0 0.575575 0 1.28568V16.7143C0 17.4244 0.59689 18 1.33329 18H3.99988H17.3333H19.9999C20.6248 18 21.1657 17.5814 21.3015 16.9933L23.9681 5.42171C24.0561 5.04079 23.9599 4.6423 23.7068 4.33808ZM1.33329 1.28542H17.3333V2.5711H16C15.2636 2.5711 14.6667 3.14667 14.6667 3.85678H6.66673C6.04183 3.85678 5.50096 4.2754 5.36514 4.86346C5.36514 4.86346 2.66764 16.6211 2.66764 16.7138H1.33329V1.28542Z" fill="white"/>
+            </svg>
+        </button>
+    </div>
+{% endblock %}
