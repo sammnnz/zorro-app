@@ -1,0 +1,20 @@
+{% extends 'templates/base/shadow-container.html' %}
+{% block scripts %}
+{% endblock %}
+{% block styles %}
+  <link rel="stylesheet" type="text/css" href="/static/main/css/defaults.css">
+  <link rel="stylesheet" type="text/css" href="/static/notepad/css/workspace.css">
+{% endblock %}
+{% block content %}
+<div class="workspace">
+  <div id="left-frame">
+    {% include 'templates/notepad/left-frame.html' %}
+  </div>
+  <div id="left-menu">
+    {% include 'templates/notepad/left-menu.html' %}
+  </div>
+  <div id="main-frame">
+    {% include 'templates/notepad/main-frame.html' %}
+  </div>
+</div>
+{% endblock %}

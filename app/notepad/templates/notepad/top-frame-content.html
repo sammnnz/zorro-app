@@ -1,0 +1,31 @@
+{% extends 'templates/base/shadow-container.html' %}
+{% block scripts %}
+    <script src="/static/notepad/js/top-frame-content.js" type="module"></script>
+{% endblock %}
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="/static/main/css/defaults.css">
+    <link rel="stylesheet" type="text/css" href="/static/notepad/css/top-frame-content.css">
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="links">
+            <div class="link-container">
+                <a class="link">File</a>
+                <div class="dropdown dummy">
+                    <a>Open file</a>
+                    <a id="link-close-project">Close Project</a>
+                </div>
+            </div>
+            <div class="link-container">
+                <a data-url="edit" class="link">Edit</a>
+            </div>
+            <div class="link-container">
+                <a data-url="view" class="link">View</a>
+            </div>
+            <div class="link-container">
+                <a data-url="help" class="link">Help</a>
+            </div>
+        </div>
+        <div id="notepad_project_title" class="title draggable" textcontent="{% binding NotepadViewModel.project_title OneWay %}"></div>
+    </div>
+{% endblock %}
