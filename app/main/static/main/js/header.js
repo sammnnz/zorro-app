@@ -14,9 +14,6 @@ async function init ($context = undefined) {
 
     const win = window.CurrentWindowAPI;
 
-    const SCREEN_HEIGHT = window.screen.availHeight / 1.5,
-        SCREEN_WIDTH  = window.screen.availWidth / 2;
-
     const $cls_btn = $context.find('.close-btn'),
         $max_btn = $context.find('.maximize-btn'),
         $min_btn = $context.find('.minimize-btn');
@@ -42,10 +39,6 @@ async function init ($context = undefined) {
             $($max_btn_img[0]).attr('src', '/static/main/img/icon-unmaximize.svg');
         }
     };
-
-    win.unmaximize();
-    window.resizeTo(SCREEN_WIDTH, SCREEN_HEIGHT);
-    await changeMaximizeButtonStyle();
 
     $cls_btn.click(windowClose);
     $max_btn.click(windowMaximize);
