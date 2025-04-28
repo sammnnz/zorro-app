@@ -1,5 +1,5 @@
 # Zorro-app
-Electron SPA with backend on Python with MVVM pattern.
+Demo Electron desktop SPA with backend on Python with MVVM pattern.
 
 # How?
 Implemented custom `data-binding` system, based on websockets (`eel`).
