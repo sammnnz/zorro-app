@@ -5,7 +5,6 @@ from eel import expose
 from multipledispatch import dispatch
 from pymagic9 import getframe, nameof, PropertyMeta
 from types import FunctionType, LambdaType, MethodType
-from src.exceptions import DataContextError, ModelError
 
 from .interfaces import ICommand, INotifyPropertyChanged
 
@@ -123,7 +122,7 @@ class _BaseMMeta(type):
 
             return self
 
-        raise ModelError('Model class should be initialized only in ViewModel class.')
+        raise TypeError('Model class should be initialized only in ViewModel class.')
 
 
 class BaseM(metaclass=_BaseMMeta):
@@ -194,7 +193,7 @@ class _DCMeta(type):
 
     def __call__(cls, *args, **kwargs):
         if DataContext.cls is not None:
-            raise DataContextError('DataContext already exist.')
+            raise AttributeError('DataContext already exist.')
 
         return super(_DCMeta, cls).__call__(*args, **kwargs)
 
@@ -210,7 +209,7 @@ class DataContext(metaclass=_DCMeta):
 
     def __init__(self, cls):
         if not isinstance(cls, type):
-            raise DataContextError('DataContext decorator may be used on classes.')
+            raise TypeError('DataContext decorator may be used on classes.')
 
         type.__setattr__(DataContext, nameof(DataContext.cls), cls)
         type.__setattr__(DataContext, nameof(DataContext.name), cls.__name__)

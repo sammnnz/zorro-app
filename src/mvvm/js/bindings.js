@@ -32,10 +32,9 @@ export const bindings = {};
  * @function
  * @name UpdateBindings
  * @returns {Promise.<void>}
+ * @param {Function} GetElementByID_fn
  */
-export const UpdateBindings = async () => {
-    "use strict";
-
+export const UpdateBindings = async (GetElementByID_fn = document.querySelector) => {
     const
         /**
          * Call from Python function, witch get bindings data (element's id, attr/attrIDL of binding,
@@ -48,7 +47,7 @@ export const UpdateBindings = async () => {
         /**
          * Object with OneWayToSource bindings (only for OneWayToSource and
          * TwoWay).
-         * @type {Set}
+         * @type {Set<Object>}
          */
         temp = new Set();
 
@@ -70,7 +69,7 @@ export const UpdateBindings = async () => {
             /**
              * @type {HTMLElement}
              */
-            el = router.getElementInTemplates('#' + binding.id);
+            el = GetElementByID_fn('#' + binding.id);
 
         binding.prop = binding.prop.replace(".", "_");
         if (! el) {
@@ -128,7 +127,7 @@ property ${binding.prop} and clear listeners.`);
                 break
 
             case _bindingTypes['OWTS']: // OneWayToSource
-                temp.add(binding)
+                temp.add({binding: binding, el: el})
                 break
 
             case _bindingTypes['TW']: // TwoWay
@@ -136,7 +135,7 @@ property ${binding.prop} and clear listeners.`);
                 _OneWay(binding, bindings, el)
 
                 // OneWayToSource part
-                temp.add(binding)
+                temp.add({binding: binding, el: el})
                 break
 
             default:
@@ -145,8 +144,10 @@ property ${binding.prop} and clear listeners.`);
     }
 
     // Create binds with Binder class for OneWayToSource and TwoWay bindings
-    for (let binding of temp) {
-        _OneWayToSource(binding, bindings);
+    for (let t of temp) {
+        const {binding, el} = t;
+
+        _OneWayToSource(binding, el);
     }
 }
 
@@ -337,18 +338,13 @@ const _OneWay = (binding, data, el) => {
  * @function
  * @name _OneWayToSource
  * @param {BindingData} binding
- * @param {Bindings} data
+ * @param {BinderElement} el
  * @returns {void}
  */
-const _OneWayToSource = (binding, data) => {
+const _OneWayToSource = (binding, el) => {
     "use strict";
 
     const
-        /**
-         * @type {HTMLElement}
-         */
-        el = router.getElementInTemplates('#' + binding.id),
-
         /**
          * @type {Binder}
          */
@@ -374,23 +370,23 @@ const _OneWayToSource = (binding, data) => {
             throw new CanceledAction('Cancel calling property value assignments inside js.')
         };
 
-    for (let id of Object.values(data[binding.prop])) {
+    for (let id of Object.values(bindings[binding.prop])) {
         for (let attr in id) {
             if (! id.hasOwnProperty(attr) ||
                 binding.id === id[attr].info.id ||
                 id[attr].info.type === _bindingTypes['OWTS'] ||
                 id[attr].info.type === _bindingTypes['OT']) {
-                continue
+                continue;
             }
 
             bind.bind(binding.attrIDL ?? binding.attr,
-                router.getElementInTemplates('#' + id[attr].info.id),
+                id[attr].element,
                 id[attr].info.attrIDL ?? id[attr].info.attr,
                 { callback: callback })
         }
     }
 
-    data[binding.prop][binding.id][binding.attr]['bind'] = bind.data.length === 0 ?
+    bindings[binding.prop][binding.id][binding.attr]['bind'] = bind.data.length === 0 ?
         bind.bind(binding.attrIDL ?? binding.attr, el,
             binding.attrIDL ?? binding.attr, { callback: callback }) : bind
 }

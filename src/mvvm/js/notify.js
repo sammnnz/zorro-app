@@ -1,4 +1,4 @@
-import { bindings, UpdateBindings } from "./bindings.js";
+import { bindings } from "./bindings.js";
 
 const NotifyPropertyChanged = function (propertyName) {
     try {
@@ -19,5 +19,4 @@ const NotifyPropertyChanged = function (propertyName) {
     }
 }
 
-await UpdateBindings(); // In first load
 eel.expose(NotifyPropertyChanged, 'NotifyPropertyChanged')
